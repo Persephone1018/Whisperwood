@@ -50,10 +50,18 @@
         <div class="artifact"><span>☽</span><div><b>Last scene</b><small id="sceneText">The coffee shop · evening</small></div></div>
       </div>
 
+      <div class="home-grid">
+        <div class="card" id="progressPanel">
+          <div class="eyebrow">Relationship</div><p class="sub">Loading…</p>
+        </div>
+        <div class="card" id="eventPanel">
+          <div class="eyebrow">Recent moments</div><p class="sub">Loading…</p>
+        </div>
+      </div>
       <div class="card">
         <div class="eyebrow">A note from the world</div>
         <h3 style="margin:5px 0 6px">Nothing here moves without you.</h3>
-        <p class="sub">Persephone chooses what she says, thinks and does. Whisperwood only responds to what you give it.</p>
+        <p class="sub">Persephone chooses what she says, thinks and does. Whisperwood can create pressure, surprises and character responses — but it never chooses Persephone's thoughts, feelings, words or actions.</p>
       </div>
     </section>
 
@@ -130,7 +138,10 @@
         <label class="toggle"><span>Atmospheric notes</span><input id="atmo" type="checkbox" checked></label>
         <label class="toggle"><span>Keep chat history</span><input id="keepChat" type="checkbox" checked></label>
         <label class="toggle"><span>Use typing pause</span><input id="typingPause" type="checkbox" checked></label>
+        <label class="toggle"><span>Let characters initiate moments</span><input id="autonomous" type="checkbox" checked></label>
+        <label class="toggle"><span>Enable story events & twists</span><input id="events" type="checkbox" checked></label>
         <div class="divider"></div>
+        <button class="secondary" id="triggerEvent">Invite a story moment ✦</button>
         <button class="secondary" id="reset">Reset story state</button>
         <button class="secondary" id="clearMemories">Clear conversation memories</button>
       </div>
