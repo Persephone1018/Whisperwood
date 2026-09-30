@@ -1,10 +1,1 @@
-{
-  "name":"Whisperwood",
-  "short_name":"Whisperwood",
-  "start_url":"./",
-  "display":"standalone",
-  "background_color":"#13231d",
-  "theme_color":"#15261f",
-  "description":"A private little story world.",
-  "icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
-}
+{"name":"Whisperwood","short_name":"Whisperwood","start_url":"./","display":"standalone","background_color":"#10231c","theme_color":"#10231c","description":"A private little story world.","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
