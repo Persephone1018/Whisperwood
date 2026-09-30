@@ -2,21 +2,142 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#10231c">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Whisperwood">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#102c25">
+<meta name="description" content="Whisperwood — a private story world.">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
-<title>Whisperwood</title>
+<title>Whisperwood — The Small Town</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="starfield" aria-hidden="true"></div>
-<div class="dust dust-a" aria-hidden="true">✦</div><div class="dust dust-b" aria-hidden="true">✧</div><div class="dust dust-c" aria-hidden="true">·</div>
-<div id="app"></div>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="moon">☾</div>
+      <div><div class="eyebrow">Private story world</div><h1>Whisperwood</h1></div>
+    </div>
+    <div class="status" id="saveState">Local save</div>
+  </header>
+
+  <nav class="nav" aria-label="Main navigation">
+    <button class="active" data-screen="home">Stories</button>
+    <button data-screen="characters">Characters</button>
+    <button data-screen="memories">Memories</button>
+    <button data-screen="settings">Settings</button>
+  </nav>
+
+  <main>
+    <section id="home" class="screen active">
+      <div class="card hero">
+        <div class="eyebrow">A little world of your own</div>
+        <h2>Welcome back, Persephone.</h2>
+        <p>The town is quiet tonight. Almost too quiet.</p>
+        <div class="constellation" aria-hidden="true">✦ ·  ˚  ✧  ·  ☾  ·  ✦</div>
+      </div>
+
+      <div class="card story-card featured">
+        <div class="story-thumb"><span>☾</span><small>01</small></div>
+        <div class="story-info">
+          <div class="eyebrow">Current story</div>
+          <h3 id="homeStoryTitle">The Small Town</h3>
+          <p id="homeStoryMeta">Slow-burn dark romance · Tristan Stone · In progress</p>
+        </div>
+        <button class="open" id="openStory">Open story →</button>
+      </div>
+
+      <div class="artifact-row">
+        <div class="artifact"><span>✧</span><div><b>Current thread</b><small id="threadText">High-Stakes Alliance</small></div></div>
+        <div class="artifact"><span>☽</span><div><b>Last scene</b><small id="sceneText">The coffee shop · evening</small></div></div>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">A note from the world</div>
+        <h3 style="margin:5px 0 6px">Nothing here moves without you.</h3>
+        <p class="sub">Persephone chooses what she says, thinks and does. Whisperwood only responds to what you give it.</p>
+      </div>
+    </section>
+
+    <section id="story" class="screen">
+      <div class="card story-head">
+        <button class="back" id="backHome">←</button>
+        <div class="portrait portrait-tristan" aria-label="Tristan portrait"><span>TS</span></div>
+        <div class="story-head-copy">
+          <h2 id="storyTitle">The Small Town</h2>
+          <p id="storySubtitle">Tristan Stone · High-Stakes Alliance</p>
+        </div>
+        <button class="scene-menu" id="sceneMenu" title="Scene details">✦</button>
+      </div>
+      <div id="scenePanel" class="scene-panel hidden">
+        <div><span class="eyebrow">Scene</span><b id="scenePanelTitle">Coffee shop · evening</b></div>
+        <div><span class="eyebrow">Thread</span><b id="scenePanelThread">High-Stakes Alliance</b></div>
+        <div><span class="eyebrow">Mood</span><b id="scenePanelMood">Quiet tension</b></div>
+      </div>
+
+      <div id="chat" class="chat" aria-live="polite"></div>
+
+      <div class="composer">
+        <textarea id="message" placeholder="What does Persephone say or do?" aria-label="Persephone message"></textarea>
+        <button class="send" id="send" aria-label="Send">➤</button>
+      </div>
+    </section>
+
+    <section id="characters" class="screen">
+      <div class="card">
+        <div class="eyebrow">Characters</div>
+        <h2 class="section-title">People who live here</h2>
+        <p class="sub">You shape the characters. The story engine uses their profiles to guide how they behave.</p>
+      </div>
+      <div id="characterList"></div>
+      <div class="card hidden" id="editor">
+        <div class="eyebrow">Character atelier</div>
+        <h2 class="section-title" id="editorTitle">Customize Tristan</h2>
+        <div class="form">
+          <label>Name<input id="fName" maxlength="50"></label>
+          <label>Nickname(s)<input id="fNickname" maxlength="100"></label>
+          <label>Age<input id="fAge" maxlength="20"></label>
+          <label>Role<input id="fRole" maxlength="120"></label>
+          <label>Personality<textarea id="fPersonality"></textarea></label>
+          <label>Appearance<textarea id="fAppearance"></textarea></label>
+          <label>How they speak<textarea id="fVoice"></textarea></label>
+          <label>Relationship to Persephone<textarea id="fRelationship"></textarea></label>
+          <label>What they know<textarea id="fKnows"></textarea></label>
+          <label>What they don't know<textarea id="fDoesntKnow"></textarea></label>
+          <label>Secrets<textarea id="fSecrets"></textarea></label>
+          <label>Memory<textarea id="fMemory"></textarea></label>
+          <label>Hard rules<textarea id="fRules"></textarea></label>
+          <div class="actions"><button class="secondary" id="cancelEdit">Cancel</button><button class="primary" id="saveCharacter">Save character</button></div>
+          <div class="saved" id="saveMsg"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="memories" class="screen">
+      <div class="card">
+        <div class="eyebrow">Story memory</div>
+        <h2 class="section-title">What the world remembers</h2>
+        <p class="sub">Visible on purpose — you can see what Whisperwood is carrying forward.</p>
+      </div>
+      <div id="memoryList"></div>
+    </section>
+
+    <section id="settings" class="screen">
+      <div class="card">
+        <div class="eyebrow">Whisperwood</div>
+        <h2 class="section-title">Settings</h2>
+        <p class="sub">This build stores your story state locally in the browser. It is designed as a private prototype, not a cloud account.</p>
+      </div>
+      <div class="card settings-card">
+        <label class="toggle"><span>Atmospheric notes</span><input id="atmo" type="checkbox" checked></label>
+        <label class="toggle"><span>Keep chat history</span><input id="keepChat" type="checkbox" checked></label>
+        <label class="toggle"><span>Use typing pause</span><input id="typingPause" type="checkbox" checked></label>
+        <div class="divider"></div>
+        <button class="secondary" id="reset">Reset story state</button>
+        <button class="secondary" id="clearMemories">Clear conversation memories</button>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
 <script src="app.js"></script>
 </body>
 </html>
