@@ -1,1 +1,9 @@
-{"name":"Whisperwood","short_name":"Whisperwood","start_url":"./","display":"standalone","background_color":"#102c25","theme_color":"#102c25","description":"A private little story world."}
+{
+  "name": "Whisperwood",
+  "short_name": "Whisperwood",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#102c25",
+  "theme_color": "#102c25",
+  "description": "A private little story world."
+}

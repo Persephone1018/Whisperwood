@@ -1,45 +1,382 @@
-const KEY="whisperwood-v6";
-const DEFAULT={version:6,character:{id:"tristan",name:"Tristan Stone",nickname:"Stone; Sunshine; Trouble",age:"36",role:"Elite, hyper-vigilant protector",personality:"Cold, controlled and intimidating to the outside world; deeply observant, fiercely protective, dryly funny, and unexpectedly gentle around Persephone. He craves peace but believes his hands are too dirty to deserve it.",appearance:"Tall and heavily built, angular marble-like features, light blonde hair, light eyes, dark intricate tattoos on his neck and arms, usually dressed in black.",voice:"Deep, quiet and economical. Blunt realism and dry, dark humour with others; slower, teasing, flirtatious and occasionally poetic with Persephone.",relationship:"High-stakes alliance becoming a slow-burn attachment. Persephone is the only person who makes his guarded posture melt.",knows:"Persephone's routines, micro-expressions, genuine laugh, and small tells that reveal discomfort or anxiety. He knows more about threats around her than she realizes.",doesntKnow:"What Persephone will choose when given the full truth. He cannot control her choices.",secrets:"He has quietly removed threats from Persephone's life and hides the scale of what he does to protect her.",memory:"He remembers small details that matter: what unsettles her, what makes her laugh, and the moments she chooses to trust him.",rules:"Never directly lie when Persephone looks him in the eye and asks for the truth. Never use his size or intimidation against her. Protection is not ownership. Respect her agency. Softness is shown through behaviour before confession."},thread:"High-Stakes Alliance",scene:{title:"Coffee shop · evening",mood:"Quiet tension",location:"The Small Town",time:"Evening"},relationship:{points:12,stage:"Alliance",trust:18,tension:14,closeness:10,lastChange:"The alliance feels a little less formal."},flags:{metAtCafe:true,truthAsked:false,doorChoice:null,sharedCoffee:false,threatMentioned:false,touchInitiated:false,apologyAccepted:false,insideJoke:false},memories:[{text:"Tristan has been expecting Persephone tonight.",kind:"Story fact",weight:2},{text:"Persephone can enter Tristan's personal space without him reaching for a weapon.",kind:"Relationship signal",weight:2},{text:"Tristan watches for signs of discomfort or anxiety in Persephone.",kind:"Character knowledge",weight:2}],messages:[{type:"note",text:"The town settles into evening."},{type:"action",text:"*Somewhere nearby, a gate clicks softly shut.*"},{type:"them",text:"You actually came."},{type:"action",text:"*Tristan looks up from his coffee, like he's been expecting you.*"},{type:"them",text:"I was starting to wonder if you'd changed your mind."}],events:{history:[],lastAt:0,unread:0},settings:{atmo:true,keepChat:true,typingPause:true,autonomous:true,events:true},busy:false};
-const STAGES=[{id:"Alliance",min:0,label:"High-Stakes Alliance",desc:"He is careful with you, but the walls are firmly in place."},{id:"Trust",min:20,label:"Earned Trust",desc:"He starts letting you see pieces of the man beneath the armour."},{id:"Attachment",min:42,label:"Quiet Attachment",desc:"Your presence changes his behaviour before either of you names why."},{id:"Intimacy",min:68,label:"Earned Intimacy",desc:"Control becomes choice. He lets softness exist without treating it as weakness."},{id:"Devotion",min:85,label:"Unspoken Devotion",desc:"The bond is undeniable, but Persephone still owns every choice."}];
-const EVENTS=[
-{id:"gate",title:"A gate clicks shut",kind:"Atmosphere",weight:2,once:true,trigger:s=>true,msg:[{type:"note",text:"A gate clicks shut somewhere down the street."},{type:"action",text:"*Tristan's eyes flick briefly toward the window. He notices everything.*"},{type:"them",text:"Stay a minute. The town's gone strangely quiet."}]},
-{id:"coffee",title:"A remembered order",kind:"Small gesture",weight:3,once:true,trigger:s=>!s.flags.sharedCoffee,msg:[{type:"action",text:"*Without asking, Tristan slides a second cup across the table.*"},{type:"them",text:"I remembered your order. Don't make it a thing."}],effect:s=>{s.flags.sharedCoffee=true;changeRel(s,3,"He remembered something small without being asked.");addMemory(s,"Tristan remembered Persephone's coffee order.","Relationship memory",3)}},
-{id:"threat",title:"Someone is watching",kind:"Plot beat",weight:1,once:true,trigger:s=>s.relationship.points>=20&&!s.flags.threatMentioned,msg:[{type:"note",text:"A figure lingers too long beneath the streetlamp."},{type:"action",text:"*Tristan goes still. Whatever warmth was there disappears behind the old marble mask.*"},{type:"them",text:"Don't turn around. Just trust me for the next thirty seconds."}],effect:s=>{s.flags.threatMentioned=true;s.scene.mood="Vigilant";addMemory(s,"Tristan noticed a possible threat before Persephone did.","Story consequence",4)}},
-{id:"truth",title:"The question he cannot dodge",kind:"Trust beat",weight:2,once:true,trigger:s=>s.flags.truthAsked&&s.relationship.trust>=28,msg:[{type:"action",text:"*For a long moment, Tristan says nothing. Then he meets your eyes instead of looking away.*"},{type:"them",text:"You asked for the truth. So this time, I'm going to give you the part I can."}],effect:s=>changeRel(s,5,"He chose honesty when it would have been easier to deflect.")},
-{id:"quiet",title:"A quiet minute",kind:"Intimacy beat",weight:3,once:false,trigger:s=>s.relationship.points>=42,msg:[{type:"note",text:"The room settles into a rare pocket of quiet."},{type:"action",text:"*Tristan's shoulders finally loosen. He doesn't seem to notice that he's stopped watching the door.*"},{type:"them",text:"You make quiet feel less like a threat."}],effect:s=>{changeRel(s,2,"He allowed himself to relax around Persephone.");addMemory(s,"Tristan relaxed enough to stop watching the door for a moment.","Relationship memory",2)}},
-{id:"touch",title:"The almost-touch",kind:"Intimacy beat",weight:2,once:true,trigger:s=>s.flags.touchInitiated&&s.relationship.points>=35,msg:[{type:"action",text:"*His gaze drops to your hand, then returns to your face. He doesn't close the distance. He simply waits.*"},{type:"them",text:"I'm not going to decide what this means for you."}],effect:s=>{changeRel(s,4,"He respected the moment without taking control of it.");addMemory(s,"Tristan let Persephone decide what a moment of closeness meant.","Agency memory",4)}},
-{id:"storm",title:"Rain against the windows",kind:"Atmosphere",weight:3,once:false,trigger:s=>true,msg:[{type:"note",text:"Rain begins ticking against the windows."},{type:"action",text:"*Tristan listens for a few seconds, expression unreadable.*"},{type:"them",text:"Stay until the rain eases. You can argue with me about it later."}]},
-{id:"goodbye",title:"The open door",kind:"Agency beat",weight:2,once:true,trigger:s=>s.flags.doorChoice==="leave",msg:[{type:"action",text:"*Tristan steps aside and leaves the doorway completely clear.*"},{type:"them",text:"Go if you want to go. I'll still be here when you choose to come back."}],effect:s=>{changeRel(s,3,"He respected Persephone's choice even when it hurt.");addMemory(s,"Tristan made space for Persephone to leave without pressure.","Agency memory",3)}},
-{id:"smirk",title:"The rare smirk",kind:"Character beat",weight:4,once:false,trigger:s=>s.relationship.points>=15,msg:[{type:"action",text:"*That helpless little smirk appears — the one he gets when he's already lost an argument.*"},{type:"them",text:"You're enjoying this far too much."}]}
-];
-const DEFAULT_REPLIES=["You have a habit of making simple things complicated.","Careful, Persephone. You're getting very good at distracting me.","I'm listening. That matters more than you think.","You don't have to fill the silence. I don't mind it with you."];
-function clone(x){return JSON.parse(JSON.stringify(x))}function merge(a,b){return {...a,...b,character:{...a.character,...(b.character||{})},scene:{...a.scene,...(b.scene||{})},relationship:{...a.relationship,...(b.relationship||{})},flags:{...a.flags,...(b.flags||{})},events:{...a.events,...(b.events||{})},settings:{...a.settings,...(b.settings||{})},memories:b.memories||a.memories,messages:b.messages||a.messages}}
-function load(){try{let s=JSON.parse(localStorage.getItem(KEY));if(s)return merge(clone(DEFAULT),s);for(const oldKey of ["whisperwood-v5","whisperwood-v4"]){s=JSON.parse(localStorage.getItem(oldKey));if(s){const n=merge(clone(DEFAULT),s);localStorage.setItem(KEY,JSON.stringify(n));return n}}}catch(e){}return clone(DEFAULT)}
-let state=load();
-function save(){localStorage.setItem(KEY,JSON.stringify(state));const e=document.getElementById("saveState");if(e)e.textContent="Saved locally ✦"}
-function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}function initials(n){return(n||"TS").split(/\s+/).map(x=>x[0]).slice(0,2).join("").toUpperCase()}function stageFor(p){return[...STAGES].reverse().find(x=>p>=x.min)||STAGES[0]}function stage(){return stageFor(state.relationship.points)}function nick(){return(state.character.nickname||"Sunshine").split(/[;,]/).map(x=>x.trim()).filter(Boolean)[0]||"Sunshine"}
-function changeRel(s,d,reason){s.relationship.points=Math.max(0,Math.min(100,s.relationship.points+d));s.relationship.trust=Math.max(0,Math.min(100,s.relationship.trust+Math.round(d*.8)));s.relationship.closeness=Math.max(0,Math.min(100,s.relationship.closeness+(d>0?Math.ceil(d*.7):0)));s.relationship.tension=Math.max(0,Math.min(100,s.relationship.tension+(d<0?Math.abs(d):d>4?1:0)));s.relationship.stage=stageFor(s.relationship.points).id;s.relationship.lastChange=reason}
-function addMemory(s,text,kind="Conversation memory",weight=1){if(!s.memories.some(m=>m.text===text)){s.memories.unshift({text,kind,weight,date:new Date().toLocaleDateString()});s.memories=s.memories.slice(0,50)}}
-function markFlags(input){const t=input.toLowerCase();if(/truth|honest|lie|lying/.test(t))state.flags.truthAsked=true;if(/touch|hand|closer|near|hold me|take my hand/.test(t))state.flags.touchInitiated=true;if(/leave|go away|goodbye|i'm leaving|im leaving/.test(t))state.flags.doorChoice="leave";if(/stay|i'll stay|ill stay/.test(t))state.flags.doorChoice="stay";if(/joke|funny|laugh|ridiculous/.test(t))state.flags.insideJoke=true}
-function chooseEvent(){let eligible=EVENTS.filter(e=>(!e.once||!state.events.history.includes(e.id))&&e.trigger(state));if(!eligible.length)return null;let total=eligible.reduce((a,e)=>a+e.weight,0),r=Math.random()*total;for(const e of eligible){r-=e.weight;if(r<=0)return e}return eligible[0]}
-function fireEvent(e,forced=false){if(!e)return;state.events.history.push(e.id);state.events.lastAt=Date.now();state.events.unread=(state.events.unread||0)+1;if(e.effect)e.effect(state);state.messages.push(...e.msg);save();if(forced){showVeil(e.title,e.kind);setTimeout(()=>hideVeil(),850)}}
-function tristanReply(input){const t=input.toLowerCase(),n=nick();if(/scared|afraid|fear|frighten|unsafe/.test(t))return ["You don't need to be afraid of me.","*For once, Tristan's expression loses every trace of amusement. His voice drops.*","Protective",2,"He noticed fear and responded without making it about himself."];if(/thank/.test(t))return ["Don't thank me for doing what I'd already decided to do.","*His gaze lingers on you for a beat too long before he looks away.*","Softened",2,"The distance between duty and care is getting harder to maintain."];if(/miss/.test(t))return [`You were gone long enough for me to notice, ${n}.`,"*The admission seems to irritate him more than it should.*","Quietly affected",3,"He admitted he noticed Persephone's absence."];if(/danger|threat|watching|follow|hurt/.test(t))return ["Then stay close. This isn't the moment to prove you can handle everything alone.","*The warmth disappears from his face. His attention maps the room in a single sweep.*","Vigilant",1,"A danger cue brought his protective instincts forward."];if(/coffee|drink/.test(t))return ["I remembered. Try not to look so surprised.","*The corner of his mouth moves — almost a smile.*","Warm",2,"He remembered a small preference."];if(/sorry|apolog/.test(t))return ["I heard you. That's enough for now.","*His shoulders ease by a fraction.*","Lowered guard",2,"He accepted an apology without demanding more."];if(/truth|honest|real/.test(t))return ["Ask me properly and I'll answer properly.","*He holds your gaze instead of giving you the easy version.*","Honest",3,"He invited directness instead of deflection."];if(/leave|goodbye|going/.test(t))return ["Then go. I won't turn your choice into a punishment.","*Tristan steps aside, leaving the path completely clear.*","Respectful",1,"He protected Persephone's agency."];if(/touch|hand|closer|near me/.test(t))return ["I'm not going to assume.","*His eyes drop to the space between you, then lift again. He waits.*","Charged",3,"He lets Persephone choose the distance."];if(/love|care about me|feel about me/.test(t))return ["That's a dangerous question.","*For once, the answer takes longer to arrive than the question.*","Exposed",4,"The question touched a guarded part of him."];if(state.relationship.points>=68&&/stay|sit|here/.test(t))return ["Good. Stay here for a while.","*He shifts just enough to make room beside him, as if the invitation is the most natural thing in the world.*","Soft",3,"At higher intimacy, he makes room instead of making a speech."];const r=DEFAULT_REPLIES[(state.messages.length+state.relationship.points)%DEFAULT_REPLIES.length];return [r,"*Tristan studies you for a moment, expression unreadable until the faintest smirk gives him away.*","Quiet tension",1,"The conversation nudged the relationship forward."]}
-function appendMessage(type,text){state.messages.push({type,text})}
-async function sendMessage(){const box=document.getElementById("message"),input=box.value.trim();if(!input||state.busy)return;state.busy=true;appendMessage("me",input);markFlags(input);addMemory(state,`Persephone said: “${input.slice(0,120)}”`,"Conversation memory",1);save();renderAll();box.value="";if(state.settings.typingPause)await new Promise(r=>setTimeout(r,650+Math.random()*700));const [reply,action,mood,delta,reason]=tristanReply(input);state.scene.mood=mood;appendMessage("action",action);appendMessage("them",reply);if(delta)changeRel(state,delta,reason);let ev=null;if(state.settings.events&&Math.random()<.25)ev=chooseEvent();if(ev)fireEvent(ev);state.busy=false;save();renderAll();if(ev)toast(`${ev.title} ✦`)}
-function maybeAutonomous(){if(!state.settings.autonomous||state.busy||!state.settings.keepChat||document.hidden)return;if(Date.now()-state.events.lastAt<14000)return;if(Math.random()>.28)return;const opts=[{min:0,text:"You disappeared on me.",action:"*A message from Tristan appears without warning.*",kind:"check-in",d:1},{min:20,text:"Tell me you're somewhere safe.",action:"*Another message arrives a moment later. The second one is noticeably less controlled.*",kind:"protective",d:1},{min:42,text:"I saw something that reminded me of you. Unfortunately.",action:"*There is a pause before the next message, as if he's reconsidering admitting this.*",kind:"quiet attachment",d:2},{min:68,text:"You know you can just come sit with me, right?",action:"*The message is almost painfully casual for someone who normally treats vulnerability like a tactical error.*",kind:"softened",d:2}].filter(o=>state.relationship.points>=o.min);if(!opts.length)return;const o=opts[Math.floor(Math.random()*opts.length)];appendMessage("action",o.action);appendMessage("them",o.text);changeRel(state,o.d,`Tristan initiated a ${o.kind} check-in.`);addMemory(state,`Tristan initiated contact: “${o.text}”`,"Autonomous moment",2);state.events.lastAt=Date.now();state.events.unread++;save();renderAll();toast("Tristan has something to say ✦")}
-const fields={name:"Name",nickname:"Nickname(s)",age:"Age",role:"Role",personality:"Personality",appearance:"Appearance",voice:"How they speak",relationship:"Relationship to Persephone",knows:"What they know",doesntKnow:"What they don't know",secrets:"Secrets",memory:"Memory",rules:"Hard rules"};
-function renderChat(){const c=document.getElementById("chat");if(!c)return;c.innerHTML="";const av=initials(state.character.name);state.messages.forEach(m=>{if(m.type==="note"){if(state.settings.atmo)c.insertAdjacentHTML("beforeend",`<div class="note">${esc(m.text)}</div>`)}else if(m.type==="action")c.insertAdjacentHTML("beforeend",`<div class="action">${esc(m.text)}</div>`);else if(m.type==="me")c.insertAdjacentHTML("beforeend",`<div class="bubble-row me"><div class="bubble">${esc(m.text)}</div></div>`);else c.insertAdjacentHTML("beforeend",`<div class="bubble-row"><div class="avatar">${esc(av)}</div><div class="bubble">${esc(m.text)}</div></div>`)});c.scrollTop=c.scrollHeight}
-function renderCharacters(){const c=state.character,l=document.getElementById("characterList");if(!l)return;l.innerHTML=`<div class="card char"><div class="char-avatar">${esc(initials(c.name))}</div><div class="char-info"><h3>${esc(c.name)}</h3><p>${esc(c.age)} · ${esc(c.role)}</p><span class="stage-mini">${esc(stage().label)} · ${state.relationship.points}/100</span></div><button class="edit" id="editChar">Edit dossier</button></div><div id="charEditor" class="card hidden"></div>`;document.getElementById("editChar").onclick=()=>{const e=document.getElementById("charEditor");e.classList.toggle("hidden");if(!e.classList.contains("hidden"))renderEditor()}}
-function renderEditor(){const c=state.character,e=document.getElementById("charEditor");e.innerHTML=`<span class="eyebrow">Canon dossier</span><h3>Customize ${esc(c.name)}</h3><p class="sub">These fields are story canon. The engine uses them to guide behaviour without deciding Persephone's choices.</p><div class="form">${Object.keys(fields).map(k=>`<label>${esc(fields[k])}<textarea data-f="${k}">${esc(c[k]||"")}</textarea></label>`).join("")}<div class="actions"><button class="secondary" id="cancelEdit">Cancel</button><button class="primary" id="saveChar">Save character</button></div><div class="saved" id="charSaved"></div></div>`;document.getElementById("saveChar").onclick=()=>{Object.keys(fields).forEach(k=>state.character[k]=e.querySelector(`[data-f="${k}"]`).value);save();renderAll();toast("Character dossier saved ✦")};document.getElementById("cancelEdit").onclick=renderCharacters}
-let memoryFilter="all";function renderMemories(){const b=document.getElementById("memoryList");if(!b)return;const ms=state.memories.filter(m=>memoryFilter==="all"||m.kind.includes(memoryFilter));b.innerHTML=ms.length?ms.map(m=>`<div class="card memory"><span class="weight">✦${m.weight||1}</span><b>${esc(m.text)}</b><small>${esc(m.kind)}${m.date?` · ${esc(m.date)}`:""}</small></div>`).join(""):"<div class='card'><p class='sub'>Nothing in this little category yet.</p></div>"}
-function renderProgress(){const b=document.getElementById("progressPanel");if(!b)return;const s=stage(),next=STAGES.find(x=>x.min>state.relationship.points);b.innerHTML=`<div class="eyebrow">Relationship</div><div class="progress-head"><div><h3>${esc(s.label)}</h3><p>${esc(s.desc)}</p></div><strong>${state.relationship.points}</strong></div><div class="progress-track"><span style="width:${state.relationship.points}%"></span></div><div class="progress-meta"><span>Trust ${state.relationship.trust}</span><span>${next?`${next.min-state.relationship.points} to next shift`:"The bond is fully established"}</span></div>`}
-function renderEvents(){const b=document.getElementById("eventPanel");if(!b)return;const hist=state.events.history.slice(-4).reverse().map(id=>EVENTS.find(e=>e.id===id)).filter(Boolean);b.innerHTML=`<div class="eyebrow">Recent moments</div>${hist.length?hist.map(e=>`<div class="event-item"><span>✦</span><div><b>${esc(e.title)}</b><small>${esc(e.kind)}</small></div></div>`).join(""):"<p class='sub' style='margin-top:7px'>The woods are listening. Keep talking.</p>"}`}
-function renderAll(){renderChat();renderCharacters();renderMemories();renderProgress();renderEvents();renderSettings();updateScene();updateComposer();const s=document.getElementById("saveState");if(s)s.textContent="Saved locally ✦"}
-function renderSettings(){["atmo","keepChat","typingPause","autonomous","events"].forEach(id=>{const e=document.getElementById(id);if(e)e.checked=!!state.settings[id]})}
-function updateScene(){const s=stage(),c=state.character;const map={sceneText:state.scene.title,threadText:s.label,eventStatus:state.events.unread?`${state.events.unread} new moment${state.events.unread>1?"s":""}`:"Quiet for now",homeStoryTitle:"The Small Town",homeStoryMeta:`Slow-burn dark romance · ${c.name}`,scenePanelTitle:state.scene.title,scenePanelThread:s.label,scenePanelMood:state.scene.mood,storyTitle:c.name,storySubtitle:`${s.label} · ${state.scene.mood}`};Object.entries(map).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v});document.querySelectorAll(".avatar").forEach(x=>x.textContent=initials(c.name));document.querySelectorAll(".portrait span").forEach(x=>x.textContent=initials(c.name));document.getElementById("presenceText")&&(document.getElementById("presenceText").textContent=state.busy?`${c.name} is thinking…`:`${c.name} is here`)}
-function updateComposer(){const b=document.getElementById("send"),t=document.getElementById("message");if(b)b.disabled=state.busy;if(t)t.disabled=state.busy}
-function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.screen===id));window.scrollTo({top:0,behavior:"smooth"})}
-function toast(msg){const t=document.getElementById("toast");if(!t)return;t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)}function showVeil(title,text){document.getElementById("veilTitle").textContent=title;document.getElementById("veilText").textContent=text;document.getElementById("veil").classList.remove("hidden")}function hideVeil(){document.getElementById("veil").classList.add("hidden")}
-function inviteMoment(){if(!state.settings.events){toast("Story events are sleeping in Settings ✦");return}const e=chooseEvent();if(!e){toast("Whisperwood is waiting for the right moment ✦");return}fireEvent(e,true);renderAll();toast(`${e.title} ✦`)}
+const KEY="whisperwood-v7";
+const DEFAULT={
+ version:7,
+ character:{
+  id:"tristan",name:"Tristan Stone",nickname:"Stone; Sunshine; Trouble",age:"36",
+  role:"Elite, hyper-vigilant protector",
+  personality:"Cold, controlled and intimidating to the outside world; deeply observant, fiercely protective, dryly funny, and unexpectedly gentle around Persephone. He craves peace but believes his hands are too dirty to deserve it.",
+  appearance:"Tall and heavily built, angular marble-like features, light blonde hair, light eyes, dark intricate tattoos on his neck and arms, usually dressed in black.",
+  voice:"Deep, quiet and economical. Blunt realism and dry, dark humour with others; slower, teasing, flirtatious and occasionally poetic with Persephone.",
+  relationship:"High-stakes alliance becoming a slow-burn attachment. Persephone is the only person who makes his guarded posture melt.",
+  knows:"Persephone's routines, micro-expressions, genuine laugh, and small tells that reveal discomfort or anxiety. He knows more about threats around her than she realizes.",
+  doesntKnow:"What Persephone will choose when given the full truth. He cannot control her choices.",
+  secrets:"He has quietly removed threats from Persephone's life and hides the scale of what he does to protect her.",
+  memory:"He remembers small details that matter: what unsettles her, what makes her laugh, and the moments she chooses to trust him.",
+  rules:"Never directly lie when Persephone looks him in the eye and asks for the truth. Never use his size or intimidation against her. Protection is not ownership. Respect her agency. Softness is shown through behaviour before confession."
+ },
+ thread:"High-Stakes Alliance",
+ scene:{title:"Coffee shop · evening",mood:"Quiet tension",location:"The Small Town",time:"Evening",description:"Coffee, rain and a man pretending he isn't waiting for you."},
+ relationship:{points:12,stage:"Alliance",trust:18,tension:14,closeness:10,lastChange:"The alliance feels a little less formal."},
+ flags:{metAtCafe:true,truthAsked:false,doorChoice:null,sharedCoffee:false,threatMentioned:false,touchInitiated:false,insideJoke:false},
+ memories:[
+  {text:"Tristan has been expecting Persephone tonight.",kind:"Story fact",weight:2},
+  {text:"Persephone can enter Tristan's personal space without him reaching for a weapon.",kind:"Relationship signal",weight:2},
+  {text:"Tristan watches for signs of discomfort or anxiety in Persephone.",kind:"Character knowledge",weight:2}
+ ],
+ messages:[
+  {type:"note",text:"The town settles into evening."},
+  {type:"action",text:"*Somewhere nearby, a gate clicks softly shut.*"},
+  {type:"them",text:"You actually came."},
+  {type:"action",text:"*Tristan looks up from his coffee, like he's been expecting you.*"},
+  {type:"them",text:"I was starting to wonder if you'd changed your mind."}
+ ],
+ events:{history:[],lastAt:0,unread:0},
+ settings:{atmo:true,keepChat:true,typingPause:true,autonomous:true,events:true}
+};
 
-document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>show(b.dataset.screen));document.getElementById("brandHome").onclick=()=>show("home");document.getElementById("enterWorld").onclick=()=>{show("story");renderAll()};document.getElementById("openStory").onclick=()=>{state.events.unread=0;save();show("story");renderAll()};document.getElementById("backHome").onclick=()=>show("home");document.getElementById("sceneMenu").onclick=()=>document.getElementById("scenePanel").classList.toggle("hidden");document.getElementById("momentButton").onclick=inviteMoment;document.getElementById("send").onclick=sendMessage;document.getElementById("message").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}});["atmo","keepChat","typingPause","autonomous","events"].forEach(id=>document.getElementById(id).onchange=e=>{state.settings[id]=e.target.checked;save();renderAll()});document.querySelectorAll(".memory-filter button").forEach(b=>b.onclick=()=>{memoryFilter=b.dataset.filter;document.querySelectorAll(".memory-filter button").forEach(x=>x.classList.toggle("active",x===b));renderMemories()});document.getElementById("triggerEvent").onclick=inviteMoment;document.getElementById("clearMemories").onclick=()=>{if(confirm("Clear remembered conversation details?")){state.memories=clone(DEFAULT.memories);save();renderAll();toast("Conversation memories cleared ✦")}};document.getElementById("reset").onclick=()=>{if(confirm("Reset Whisperwood to its starting story?")){localStorage.removeItem(KEY);state=clone(DEFAULT);save();renderAll();show("home");toast("Whisperwood reset ✦")}};renderAll();setInterval(maybeAutonomous,18000)});
+const STAGES=[
+ {id:"Alliance",min:0,label:"High-Stakes Alliance",desc:"He is careful with you, but the walls are firmly in place."},
+ {id:"Trust",min:20,label:"Earned Trust",desc:"He starts letting you see pieces of the man beneath the armour."},
+ {id:"Attachment",min:42,label:"Quiet Attachment",desc:"Your presence changes his behaviour before either of you names why."},
+ {id:"Intimacy",min:68,label:"Earned Intimacy",desc:"Control becomes choice. He lets softness exist without treating it as weakness."},
+ {id:"Devotion",min:85,label:"Unspoken Devotion",desc:"The bond is undeniable, but Persephone still owns every choice."}
+];
+
+const ARTIFACTS=[
+ {id:"coffee",icon:"☕",title:"The second coffee",tag:"Relationship",short:"He remembered your order.",detail:"A second cup appears before you ask. Tristan pretends this is nothing. It is, objectively, not nothing.",meaning:"Small details are how he lets care leak through before he is willing to name it."},
+ {id:"key",icon:"⌕",title:"The black key",tag:"Story",short:"A key with no explanation.",detail:"Heavy, matte-black metal. No label. No obvious lock. Tristan has never told you what it opens.",meaning:"Some pieces of the story are deliberately unresolved. Curiosity is allowed to breathe."},
+ {id:"note",icon:"✧",title:"The folded note",tag:"Character",short:"Four words in his handwriting.",detail:"The paper reads: “Call me. Don't disappear.” The handwriting is controlled. The wording is not.",meaning:"His control is strongest when he is frightened of losing contact."},
+ {id:"pressed",icon:"❋",title:"The pressed flower",tag:"Memory",short:"A tiny thing kept between pages.",detail:"A small pale flower has been pressed between the pages of a book at the café. Nobody remembers putting it there.",meaning:"Not every object needs an explanation immediately. Some are atmosphere, some become story."}
+];
+
+const EVENTS=[
+ {id:"gate",title:"A gate clicks shut",kind:"Atmosphere",weight:2,once:true,trigger:s=>true,msg:[
+  {type:"note",text:"A gate clicks shut somewhere down the street."},
+  {type:"action",text:"*Tristan's eyes flick briefly toward the window. He notices everything.*"},
+  {type:"them",text:"Stay a minute. The town's gone strangely quiet."}
+ ]},
+ {id:"coffee",title:"A remembered order",kind:"Small gesture",weight:3,once:true,trigger:s=>!s.flags.sharedCoffee,msg:[
+  {type:"action",text:"*Without asking, Tristan slides a second cup across the table.*"},
+  {type:"them",text:"I remembered your order. Don't make it a thing."}
+ ],effect:s=>{s.flags.sharedCoffee=true;changeRel(s,3,"He remembered something small without being asked.");addMemory(s,"Tristan remembered Persephone's coffee order.","Relationship memory",3)}},
+ {id:"threat",title:"Someone is watching",kind:"Plot beat",weight:1,once:true,trigger:s=>s.relationship.points>=20&&!s.flags.threatMentioned,msg:[
+  {type:"note",text:"A figure lingers too long beneath the streetlamp."},
+  {type:"action",text:"*Tristan goes still. Whatever warmth was there disappears behind the old marble mask.*"},
+  {type:"them",text:"Don't turn around. Just trust me for the next thirty seconds."}
+ ],effect:s=>{s.flags.threatMentioned=true;s.scene.mood="Vigilant";s.scene.description="The room has gone still. Tristan noticed something before you did.";addMemory(s,"Tristan noticed a possible threat before Persephone did.","Story consequence",4)}},
+ {id:"truth",title:"The question he cannot dodge",kind:"Trust beat",weight:2,once:true,trigger:s=>s.flags.truthAsked&&s.relationship.trust>=28,msg:[
+  {type:"action",text:"*For a long moment, Tristan says nothing. Then he meets your eyes instead of looking away.*"},
+  {type:"them",text:"You asked for the truth. So this time, I'm going to give you the part I can."}
+ ],effect:s=>changeRel(s,5,"He chose honesty when it would have been easier to deflect.")},
+ {id:"quiet",title:"A quiet minute",kind:"Intimacy beat",weight:3,once:false,trigger:s=>s.relationship.points>=42,msg:[
+  {type:"note",text:"The room settles into a rare pocket of quiet."},
+  {type:"action",text:"*Tristan's shoulders finally loosen. He doesn't seem to notice that he's stopped watching the door.*"},
+  {type:"them",text:"You make quiet feel less like a threat."}
+ ],effect:s=>{changeRel(s,2,"He allowed himself to relax around Persephone.");addMemory(s,"Tristan relaxed enough to stop watching the door for a moment.","Relationship memory",2)}},
+ {id:"touch",title:"The almost-touch",kind:"Intimacy beat",weight:2,once:true,trigger:s=>s.flags.touchInitiated&&s.relationship.points>=35,msg:[
+  {type:"action",text:"*His gaze drops to your hand, then returns to your face. He doesn't close the distance. He simply waits.*"},
+  {type:"them",text:"I'm not going to decide what this means for you."}
+ ],effect:s=>{changeRel(s,4,"He respected the moment without taking control of it.");addMemory(s,"Tristan let Persephone decide what a moment of closeness meant.","Agency memory",4)}},
+ {id:"storm",title:"Rain against the windows",kind:"Atmosphere",weight:3,once:false,trigger:s=>true,msg:[
+  {type:"note",text:"Rain begins ticking against the windows."},
+  {type:"action",text:"*Tristan listens for a few seconds, expression unreadable.*"},
+  {type:"them",text:"Stay until the rain eases. You can argue with me about it later."}
+ ]},
+ {id:"goodbye",title:"The open door",kind:"Agency beat",weight:2,once:true,trigger:s=>s.flags.doorChoice==="leave",msg:[
+  {type:"action",text:"*Tristan steps aside and leaves the doorway completely clear.*"},
+  {type:"them",text:"Go if you want to go. I'll still be here when you choose to come back."}
+ ],effect:s=>{changeRel(s,3,"He respected Persephone's choice even when it hurt.");addMemory(s,"Tristan made space for Persephone to leave without pressure.","Agency memory",3)}},
+ {id:"smirk",title:"The rare smirk",kind:"Character beat",weight:4,once:false,trigger:s=>s.relationship.points>=15,msg:[
+  {type:"action",text:"*That helpless little smirk appears — the one he gets when he's already lost an argument.*"},
+  {type:"them",text:"You're enjoying this far too much."}
+ ]}
+];
+
+const DEFAULT_REPLIES=[
+ "You have a habit of making simple things complicated.",
+ "Careful, Persephone. You're getting very good at distracting me.",
+ "I'm listening. That matters more than you think.",
+ "You don't have to fill the silence. I don't mind it with you."
+];
+
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function merge(a,b){return {...a,...b,character:{...a.character,...(b.character||{})},scene:{...a.scene,...(b.scene||{})},relationship:{...a.relationship,...(b.relationship||{})},flags:{...a.flags,...(b.flags||{})},events:{...a.events,...(b.events||{})},settings:{...a.settings,...(b.settings||{})},memories:b.memories||a.memories,messages:b.messages||a.messages}}
+function load(){
+ try{
+  let s=JSON.parse(localStorage.getItem(KEY));
+  if(s)return merge(clone(DEFAULT),s);
+  for(const oldKey of ["whisperwood-v6","whisperwood-v5","whisperwood-v4"]){
+   s=JSON.parse(localStorage.getItem(oldKey));
+   if(s){const n=merge(clone(DEFAULT),s);localStorage.setItem(KEY,JSON.stringify(n));return n}
+  }
+ }catch(e){}
+ return clone(DEFAULT);
+}
+let state=load();
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(state));
+ const e=document.getElementById("saveState"); if(e)e.textContent="Saved locally ✦";
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function initials(n){return(n||"TS").split(/\s+/).map(x=>x[0]).slice(0,2).join("").toUpperCase()}
+function stageFor(p){return[...STAGES].reverse().find(x=>p>=x.min)||STAGES[0]}
+function stage(){return stageFor(state.relationship.points)}
+function nick(){return(state.character.nickname||"Sunshine").split(/[;,]/).map(x=>x.trim()).filter(Boolean)[0]||"Sunshine"}
+function cleanAction(s){return String(s||"").replace(/^\*|\*$/g,"")}
+
+function changeRel(s,d,reason){
+ s.relationship.points=Math.max(0,Math.min(100,s.relationship.points+d));
+ s.relationship.trust=Math.max(0,Math.min(100,s.relationship.trust+Math.round(d*.8)));
+ s.relationship.closeness=Math.max(0,Math.min(100,s.relationship.closeness+(d>0?Math.ceil(d*.7):0)));
+ s.relationship.tension=Math.max(0,Math.min(100,s.relationship.tension+(d<0?Math.abs(d):d>4?1:0)));
+ s.relationship.stage=stageFor(s.relationship.points).id;
+ s.relationship.lastChange=reason;
+}
+function addMemory(s,text,kind="Conversation memory",weight=1){
+ if(!s.memories.some(m=>m.text===text)){
+  s.memories.unshift({text,kind,weight,date:new Date().toLocaleDateString()});
+  s.memories=s.memories.slice(0,50);
+ }
+}
+function markFlags(input){
+ const t=input.toLowerCase();
+ if(/truth|honest|lie|lying/.test(t))state.flags.truthAsked=true;
+ if(/touch|hand|closer|near|hold me|take my hand/.test(t))state.flags.touchInitiated=true;
+ if(/leave|go away|goodbye|i'm leaving|im leaving/.test(t))state.flags.doorChoice="leave";
+ if(/stay|i'll stay|ill stay/.test(t))state.flags.doorChoice="stay";
+ if(/joke|funny|laugh|ridiculous/.test(t))state.flags.insideJoke=true;
+}
+function chooseEvent(){
+ const eligible=EVENTS.filter(e=>(!e.once||!state.events.history.includes(e.id))&&e.trigger(state));
+ if(!eligible.length)return null;
+ let total=eligible.reduce((a,e)=>a+e.weight,0),r=Math.random()*total;
+ for(const e of eligible){r-=e.weight;if(r<=0)return e}
+ return eligible[0];
+}
+function fireEvent(e,forced=false){
+ if(!e)return;
+ state.events.history.push(e.id);state.events.lastAt=Date.now();state.events.unread=(state.events.unread||0)+1;
+ if(e.effect)e.effect(state);
+ state.messages.push(...e.msg);save();
+ if(forced){showVeil(e.title,e.kind);setTimeout(hideVeil,850)}
+}
+
+function tristanReply(input){
+ const t=input.toLowerCase(),n=nick();
+ if(/scared|afraid|fear|frighten|unsafe/.test(t))
+  return ["You don't need to be afraid of me.","*For once, Tristan's expression loses every trace of amusement. His voice drops.*","Protective",2,"He noticed fear and responded without making it about himself."];
+ if(/thank/.test(t))
+  return ["Don't thank me for doing what I'd already decided to do.","*His gaze lingers on you for a beat too long before he looks away.*","Softened",2,"The distance between duty and care is getting harder to maintain."];
+ if(/miss/.test(t))
+  return [`You were gone long enough for me to notice, ${n}.`,"*The admission seems to irritate him more than it should.*","Quietly affected",3,"He admitted he noticed Persephone's absence."];
+ if(/danger|threat|watching|follow|hurt/.test(t))
+  return ["Then stay close. This isn't the moment to prove you can handle everything alone.","*The warmth disappears from his face. His attention maps the room in a single sweep.*","Vigilant",1,"A danger cue brought his protective instincts forward."];
+ if(/coffee|drink/.test(t))
+  return ["I remembered. Try not to look so surprised.","*The corner of his mouth moves — almost a smile.*","Warm",2,"He remembered a small preference."];
+ if(/sorry|apolog/.test(t))
+  return ["I heard you. That's enough for now.","*His shoulders ease by a fraction.*","Lowered guard",2,"He accepted an apology without demanding more."];
+ if(/truth|honest|real/.test(t))
+  return ["Ask me properly and I'll answer properly.","*He holds your gaze instead of giving you the easy version.*","Honest",3,"He invited directness instead of deflection."];
+ if(/leave|goodbye|going/.test(t))
+  return ["Then go. I won't turn your choice into a punishment.","*Tristan steps aside, leaving the path completely clear.*","Respectful",1,"He protected Persephone's agency."];
+ if(/touch|hand|closer|near me/.test(t))
+  return ["I'm not going to assume.","*His eyes drop to the space between you, then lift again. He waits.*","Charged",3,"He lets Persephone choose the distance."];
+ if(/love|care about me|feel about me/.test(t))
+  return ["That's a dangerous question.","*For once, the answer takes longer to arrive than the question.*","Exposed",4,"The question touched a guarded part of him."];
+ if(/tease|teasing|smirk|cocky|arrogant/.test(t))
+  return ["Careful. You're getting brave.","*One eyebrow lifts. There it is — that infuriating little smirk.*","Amused",2,"He answered teasing with teasing."];
+ if(state.relationship.points>=68&&/stay|sit|here/.test(t))
+  return ["Good. Stay here for a while.","*He shifts just enough to make room beside him, as if the invitation is the most natural thing in the world.*","Soft",3,"At higher intimacy, he makes room instead of making a speech."];
+ const r=DEFAULT_REPLIES[(state.messages.length+state.relationship.points)%DEFAULT_REPLIES.length];
+ return [r,"*Tristan studies you for a moment, expression unreadable until the faintest smirk gives him away.*","Quiet tension",1,"The conversation nudged the relationship forward."];
+}
+function appendMessage(type,text){state.messages.push({type,text})}
+
+async function sendMessage(){
+ const box=document.getElementById("message"),input=box.value.trim();
+ if(!input||state.busy)return;
+ state.busy=true;appendMessage("me",input);markFlags(input);
+ addMemory(state,`Persephone said: “${input.slice(0,120)}”`,"Conversation memory",1);
+ save();renderAll();box.value="";
+ if(state.settings.typingPause)await new Promise(r=>setTimeout(r,650+Math.random()*700));
+ const [reply,action,mood,delta,reason]=tristanReply(input);
+ state.scene.mood=mood;state.scene.description=sceneDescription(mood);
+ appendMessage("action",action);appendMessage("them",reply);
+ if(delta)changeRel(state,delta,reason);
+ let ev=null;if(state.settings.events&&Math.random()<.25)ev=chooseEvent();if(ev)fireEvent(ev);
+ state.busy=false;save();renderAll();if(ev)toast(`${ev.title} ✦`);
+}
+function sceneDescription(mood){
+ const map={
+  Protective:"Tristan's attention has narrowed to you and the room around you.",
+  Softened:"The sharp edges have gone quieter.",
+  "Quietly affected":"Something in the silence feels more personal than before.",
+  Vigilant:"The room has gone still. Tristan noticed something before you did.",
+  Warm:"The second cup between you feels like an admission he isn't ready to make.",
+  "Lowered guard":"The tension has eased by a fraction.",
+  Honest:"There is nowhere for the easy answer to hide.",
+  Respectful:"The doorway is open. The choice is yours.",
+  Charged:"The space between you suddenly feels very deliberate.",
+  Exposed:"For once, Tristan seems less prepared for the question than he is for a threat.",
+  Amused:"The dangerous thing about his smirk is that you know exactly what caused it.",
+  Soft:"He has made room without making a speech.",
+  "Quiet tension":"Coffee, rain and a man pretending he isn't waiting for you."
+ };
+ return map[mood]||map["Quiet tension"];
+}
+
+function maybeAutonomous(){
+ if(!state.settings.autonomous||state.busy||!state.settings.keepChat||document.hidden)return;
+ if(Date.now()-state.events.lastAt<14000)return;
+ if(Math.random()>.28)return;
+ const opts=[
+  {min:0,text:"You disappeared on me.",action:"*A message from Tristan appears without warning.*",kind:"check-in",d:1},
+  {min:20,text:"Tell me you're somewhere safe.",action:"*Another message arrives a moment later. The second one is noticeably less controlled.*",kind:"protective",d:1},
+  {min:42,text:"I saw something that reminded me of you. Unfortunately.",action:"*There is a pause before the next message, as if he's reconsidering admitting this.*",kind:"quiet attachment",d:2},
+  {min:68,text:"You know you can just come sit with me, right?",action:"*The message is almost painfully casual for someone who normally treats vulnerability like a tactical error.*",kind:"softened",d:2}
+ ].filter(o=>state.relationship.points>=o.min);
+ if(!opts.length)return;
+ const o=opts[Math.floor(Math.random()*opts.length)];
+ appendMessage("action",o.action);appendMessage("them",o.text);
+ changeRel(state,o.d,`Tristan initiated a ${o.kind} check-in.`);
+ addMemory(state,`Tristan initiated contact: “${o.text}”`,"Autonomous moment",2);
+ state.events.lastAt=Date.now();state.events.unread++;save();renderAll();toast("Tristan has something to say ✦");
+}
+
+const fields={name:"Name",nickname:"Nickname(s)",age:"Age",role:"Role",personality:"Personality",appearance:"Appearance",voice:"How they speak",relationship:"Relationship to Persephone",knows:"What they know",doesntKnow:"What they don't know",secrets:"Secrets",memory:"Memory",rules:"Hard rules"};
+
+function renderChat(){
+ const c=document.getElementById("chat");if(!c)return;c.innerHTML="";
+ const av=initials(state.character.name);
+ state.messages.forEach(m=>{
+  if(m.type==="note"){if(state.settings.atmo)c.insertAdjacentHTML("beforeend",`<div class="note">${esc(m.text)}</div>`)}
+  else if(m.type==="action")c.insertAdjacentHTML("beforeend",`<div class="action">${esc(cleanAction(m.text))}</div>`)
+  else if(m.type==="me")c.insertAdjacentHTML("beforeend",`<div class="bubble-row me"><div class="bubble">${esc(m.text)}</div></div>`)
+  else c.insertAdjacentHTML("beforeend",`<div class="bubble-row"><div class="avatar">${esc(av)}</div><div class="bubble">${esc(m.text)}</div></div>`);
+ });
+ c.scrollTop=c.scrollHeight;
+}
+
+function renderCharacters(){
+ const c=state.character,l=document.getElementById("characterList");if(!l)return;
+ l.innerHTML=`<div class="card char">
+   <div class="char-avatar">${esc(initials(c.name))}</div>
+   <div class="char-info"><h3>${esc(c.name)}</h3><p>${esc(c.age)} · ${esc(c.role)}</p><span class="stage-mini">${esc(stage().label)} · ${state.relationship.points}/100</span></div>
+   <button class="edit" id="editChar">Edit dossier</button>
+ </div>
+ <div id="charEditor" class="card hidden"></div>
+ <div class="card dossier-preview">
+  <div><span class="eyebrow">Presence</span><b>How he feels in a room</b><p>${esc(c.personality)}</p></div>
+  <div><span class="eyebrow">Voice</span><b>How he sounds</b><p>${esc(c.voice)}</p></div>
+  <div><span class="eyebrow">Relationship</span><b>What is changing</b><p>${esc(state.relationship.lastChange)}</p></div>
+ </div>`;
+ document.getElementById("editChar").onclick=()=>{const e=document.getElementById("charEditor");e.classList.toggle("hidden");if(!e.classList.contains("hidden"))renderEditor()};
+}
+function renderEditor(){
+ const c=state.character,e=document.getElementById("charEditor");
+ e.innerHTML=`<span class="eyebrow">Canon dossier</span><h3>Customize ${esc(c.name)}</h3><p class="sub">These fields are story canon. The engine uses them to guide behaviour without deciding Persephone's choices.</p>
+ <div class="form">${Object.keys(fields).map(k=>`<label>${esc(fields[k])}<textarea data-f="${k}">${esc(c[k]||"")}</textarea></label>`).join("")}
+ <div class="actions"><button class="secondary" id="cancelEdit">Cancel</button><button class="primary" id="saveChar">Save character</button></div></div>`;
+ document.getElementById("saveChar").onclick=()=>{
+  Object.keys(fields).forEach(k=>state.character[k]=e.querySelector(`[data-f="${k}"]`).value);
+  save();renderAll();toast("Character dossier saved ✦");
+ };
+ document.getElementById("cancelEdit").onclick=renderCharacters;
+}
+
+function renderArtifacts(){
+ const list=document.getElementById("artifactList"),shelf=document.getElementById("artifactShelf");if(!list||!shelf)return;
+ const card=a=>`<button class="artifact-card card" data-artifact="${a.id}"><span class="artifact-icon">${a.icon}</span><span class="artifact-tag">${esc(a.tag)}</span><b>${esc(a.title)}</b><small>${esc(a.short)}</small></button>`;
+ list.innerHTML=ARTIFACTS.map(card).join("");
+ shelf.innerHTML=ARTIFACTS.slice(0,3).map(card).join("");
+ document.querySelectorAll("[data-artifact]").forEach(b=>b.onclick=()=>openArtifact(b.dataset.artifact));
+}
+function openArtifact(id){
+ const a=ARTIFACTS.find(x=>x.id===id);if(!a)return;
+ openModal(`<div class="modal-icon">${a.icon}</div><span class="eyebrow">${esc(a.tag)}</span><h2>${esc(a.title)}</h2><p class="modal-lead">${esc(a.detail)}</p><div class="meaning"><span class="eyebrow">Why it matters</span><p>${esc(a.meaning)}</p></div><button class="primary wide" id="closeModal">Close</button>`);
+}
+function openCharacter(){
+ const c=state.character;
+ openModal(`<div class="modal-profile-head"><div class="modal-avatar">${esc(initials(c.name))}</div><div><span class="eyebrow">Character profile</span><h2>${esc(c.name)}</h2><p>${esc(c.age)} · ${esc(c.role)}</p></div></div>
+ <div class="profile-stat"><span>Current thread</span><b>${esc(stage().label)}</b></div>
+ <div class="meaning"><span class="eyebrow">How he speaks</span><p>${esc(c.voice)}</p></div>
+ <div class="meaning"><span class="eyebrow">How he behaves</span><p>${esc(c.personality)}</p></div>
+ <button class="primary wide" id="closeModal">Back to scene</button>`);
+}
+function openModal(html){
+ const modal=document.getElementById("worldModal");document.getElementById("modalContent").innerHTML=html;modal.classList.remove("hidden");
+ document.getElementById("closeModal")?.addEventListener("click",closeModal);
+}
+function closeModal(){document.getElementById("worldModal").classList.add("hidden")}
+function renderMemories(){
+ const b=document.getElementById("memoryList");if(!b)return;
+ const ms=state.memories.filter(m=>memoryFilter==="all"||m.kind.includes(memoryFilter));
+ b.innerHTML=ms.length?ms.map(m=>`<div class="card memory"><span class="weight">✦${m.weight||1}</span><b>${esc(m.text)}</b><small>${esc(m.kind)}${m.date?` · ${esc(m.date)}`:""}</small></div>`).join(""):"<div class='card'><p class='sub'>Nothing in this little category yet.</p></div>";
+}
+function renderProgress(){
+ const b=document.getElementById("progressPanel");if(!b)return;
+ const s=stage(),next=STAGES.find(x=>x.min>state.relationship.points);
+ b.innerHTML=`<div class="eyebrow">Relationship</div><div class="progress-head"><div><h3>${esc(s.label)}</h3><p>${esc(s.desc)}</p></div><strong>${state.relationship.points}</strong></div>
+ <div class="progress-track"><span style="width:${state.relationship.points}%"></span></div>
+ <div class="progress-meta"><span>Trust ${state.relationship.trust}</span><span>${next?`${next.min-state.relationship.points} to next shift`:"The bond is fully established"}</span></div>`;
+}
+function renderEvents(){
+ const b=document.getElementById("eventPanel");if(!b)return;
+ const hist=state.events.history.slice(-4).reverse().map(id=>EVENTS.find(e=>e.id===id)).filter(Boolean);
+ b.innerHTML=`<div class="eyebrow">Recent moments</div>${hist.length?hist.map(e=>`<div class="event-item"><span>✦</span><div><b>${esc(e.title)}</b><small>${esc(e.kind)}</small></div></div>`).join(""):"<p class='sub' style='margin-top:7px'>The woods are listening. Keep talking.</p>"}`;
+}
+function renderSettings(){["atmo","keepChat","typingPause","autonomous","events"].forEach(id=>{const e=document.getElementById(id);if(e)e.checked=!!state.settings[id]})}
+function updateScene(){
+ const s=stage(),c=state.character;
+ const map={
+  sceneText:state.scene.title,threadText:s.label,eventStatus:state.events.unread?`${state.events.unread} new moment${state.events.unread>1?"s":""}`:"Quiet for now",
+  homeStoryMeta:`Slow-burn dark romance · ${c.name}`,
+  scenePanelTitle:state.scene.title,scenePanelThread:s.label,scenePanelMood:state.scene.mood,
+  scenePanelLocation:state.scene.location,scenePanelTime:state.scene.time,scenePanelPresence:`${c.name} is here`,
+  storyTitle:c.name,storySubtitle:`${s.label} · ${state.scene.mood}`,
+  worldMood:state.scene.mood,worldDescription:state.scene.description,worldLocation:state.scene.location,worldTime:state.scene.time,worldAtmosphere:state.scene.mood
+ };
+ Object.entries(map).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v});
+ document.querySelectorAll(".avatar").forEach(x=>x.textContent=initials(c.name));
+ document.querySelectorAll(".portrait span").forEach(x=>x.textContent=initials(c.name));
+ const p=document.getElementById("presenceText");if(p)p.textContent=state.busy?`${c.name} is thinking…`:`${c.name} is here`;
+}
+function updateComposer(){const b=document.getElementById("send"),t=document.getElementById("message");if(b)b.disabled=state.busy;if(t)t.disabled=state.busy}
+function show(id){
+ document.querySelectorAll(".screen").forEach(x=>x.classList.toggle("active",x.id===id));
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.screen===id));
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function toast(msg){const t=document.getElementById("toast");if(!t)return;t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)}
+function showVeil(title,text){document.getElementById("veilTitle").textContent=title;document.getElementById("veilText").textContent=text;document.getElementById("veil").classList.remove("hidden")}
+function hideVeil(){document.getElementById("veil").classList.add("hidden")}
+function inviteMoment(){
+ if(!state.settings.events){toast("Story events are sleeping in Settings ✦");return}
+ const e=chooseEvent();if(!e){toast("Whisperwood is waiting for the right moment ✦");return}
+ fireEvent(e,true);renderAll();toast(`${e.title} ✦`);
+}
+
+let memoryFilter="all";
+function renderAll(){renderChat();renderCharacters();renderArtifacts();renderMemories();renderProgress();renderEvents();renderSettings();updateScene();updateComposer()}
+
+document.addEventListener("DOMContentLoaded",()=>{
+ document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>show(b.dataset.screen));
+ document.getElementById("brandHome").onclick=()=>show("home");
+ document.getElementById("enterWorld").onclick=()=>{show("story");renderAll()};
+ document.getElementById("openStory").onclick=()=>{state.events.unread=0;save();show("story");renderAll()};
+ document.getElementById("backHome").onclick=()=>show("home");
+ document.getElementById("sceneMenu").onclick=()=>document.getElementById("scenePanel").classList.toggle("hidden");
+ document.getElementById("characterPeek").onclick=openCharacter;
+ document.getElementById("momentButton").onclick=inviteMoment;
+ document.getElementById("send").onclick=sendMessage;
+ document.getElementById("message").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}});
+ ["atmo","keepChat","typingPause","autonomous","events"].forEach(id=>document.getElementById(id).onchange=e=>{state.settings[id]=e.target.checked;save();renderAll()});
+ document.querySelectorAll(".memory-filter button").forEach(b=>b.onclick=()=>{memoryFilter=b.dataset.filter;document.querySelectorAll(".memory-filter button").forEach(x=>x.classList.toggle("active",x===b));renderMemories()});
+ document.getElementById("triggerEvent").onclick=inviteMoment;
+ document.getElementById("clearMemories").onclick=()=>{if(confirm("Clear remembered conversation details?")){state.memories=clone(DEFAULT.memories);save();renderAll();toast("Conversation memories cleared ✦")}};
+ document.getElementById("reset").onclick=()=>{if(confirm("Reset Whisperwood to its starting story?")){localStorage.removeItem(KEY);state=clone(DEFAULT);save();renderAll();show("home");toast("Whisperwood reset ✦")}};
+ document.getElementById("worldModal").addEventListener("click",e=>{if(e.target.id==="worldModal")closeModal()});
+ renderAll();
+ setInterval(maybeAutonomous,18000);
+});
