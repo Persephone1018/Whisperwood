@@ -1,0 +1,4 @@
+Add this immediately after the existing app.js script tag in index.html:
+
+<script src="app.js"></script>
+<script src="ai.js"></script>
